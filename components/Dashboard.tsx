@@ -4,6 +4,7 @@ import { useEnergyMonitor, type LogEvent, type Pending } from "@/lib/useEnergyMo
 import type { LoadReading } from "@/lib/types";
 import PowerChart from "./PowerChart";
 import History from "./History";
+import AIPanel from "./AIPanel";
 import { useHistory } from "@/lib/useHistory";
 import type { EventPayload } from "@/lib/types";
 
@@ -155,6 +156,8 @@ export default function Dashboard() {
         <PowerChart data={m.chart} />
         <EventLog events={allEvents} />
       </section>
+
+      <AIPanel demo={m.demo} ready={m.modeKnown} />
 
       <History
         range={h.range} setRange={h.setRange}
