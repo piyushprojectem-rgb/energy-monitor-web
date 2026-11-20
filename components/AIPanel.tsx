@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import ForecastCard from "./ForecastCard";
 
 interface Item { level: "alert" | "warning" | "info" | "tip"; title: string; text: string }
 interface Insights { generatedAt: number; summary: string; items: Item[]; ai: boolean; model?: string; note?: string; cached?: boolean }
@@ -11,6 +12,7 @@ const SUGGESTIONS = [
   "Which load costs me the most?",
   "Compare today with yesterday",
   "Was anything unusual today?",
+  "What will my bill be this month?",
   "How can I reduce my bill?",
 ];
 
@@ -33,6 +35,7 @@ function demoAnswer(q: string) {
   if (s.includes("yesterday")) return "Today so far you've used **0.62 kWh**, compared with **0.55 kWh** for the whole of yesterday — about 13% more. Most of the increase comes from Load 2 running longer.";
   if (s.includes("most") || s.includes("cost")) return "**Load 1** costs you the most: 0.44 kWh today, which is about **₹3.52** at ₹8/kWh (71% of today's bill).";
   if (s.includes("unusual")) return "Yes — **Load 2** has been ON for 9.5 h today, while it usually runs about 2 h per day. You may have forgotten to switch it off.";
+  if (s.includes("this month") || s.includes("predict")) return "Your **predicted bill** for this month is about **₹148** (likely between ₹136 and ₹160). So far you have spent ₹78 in the first part of the month; Load 1 makes up roughly three-quarters of it.";
   if (s.includes("reduce") || s.includes("bill")) return "- Switch Load 2 off when not needed — it's running 7 h longer than usual today.\n- Turning Load 1 off one hour earlier saves about **₹0.48/day** (₹14/month).";
   return "Today you have used **0.62 kWh** so far, costing about **₹4.96** at ₹8/kWh.\n\n_(Demo mode: answers are examples. Connect the real device to ask about your data.)_";
 }
@@ -77,6 +80,7 @@ const LEVEL_LABEL: Record<Item["level"], string> = { alert: "Alert", warning: "C
 export default function AIPanel({ demo, ready }: { demo: boolean; ready: boolean }) {
   return (
     <section className="ai">
+      <ForecastCard demo={demo} ready={ready} />
       <InsightsCard demo={demo} ready={ready} />
       <ChatCard demo={demo} />
     </section>

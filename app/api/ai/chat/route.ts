@@ -4,6 +4,7 @@
 
 import { dbConfigured, jsonError } from "@/lib/db";
 import { getEnergyFacts } from "@/lib/ai/facts";
+import { getForecast } from "@/lib/ai/forecast";
 import { aiErrorResponse, generate, type Turn } from "@/lib/ai/gemini";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +37,8 @@ Answer the user's questions about their electricity use using ONLY the facts bel
 - Times are IST. "Today" means the date in now_local.
 - Readings for loads marked as calculated come from subtracting meters (shared shunts), so their current/PF are approximate — mention only if relevant.
 - Keep answers short: 1-4 sentences, or a few "- " bullet points for lists. You may use **bold** for key numbers. No tables, no headings.
+- "month_forecast" holds this month's bill: actual so far and a PREDICTION to month-end with a low-high range.
+  Always call the month-end figure a prediction/estimate and mention the range. Daily kWh for this month is in month_forecast.daily_kwh_this_month.
 - You cannot switch relays; if asked, tell the user to use the buttons on the dashboard.
 - Politely decline questions unrelated to this energy monitor or electricity.
 
@@ -65,7 +68,15 @@ export async function POST(req: Request) {
 
   let facts;
   try {
-    facts = await getEnergyFacts();
+    const [base, fc] = await Promise.all([getEnergyFacts(), getForecast()]);
+    const { daily, ...fcRest } = fc;
+    facts = {
+      ...base,
+      month_forecast: {
+        ...fcRest,
+        daily_kwh_this_month: daily.filter((d) => d.kwh != null).map((d) => ({ date: d.date, kwh: d.kwh })),
+      },
+    };
   } catch (e) {
     console.error("[chat] db error:", e);
     return jsonError("Database error", 500);
